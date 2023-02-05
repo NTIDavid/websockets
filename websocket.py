@@ -12,6 +12,8 @@ def randCol():
     blue = random.randint(0, 180)
     color = "#{:02x}{:02x}{:02x}".format(red, green, blue)
     return color
+def dist(x1, y1, x2, y2):
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 players = []
 def addPlayer():
@@ -22,6 +24,7 @@ def addPlayer():
             high = players[index]["id"]
     players.append({
         "id": high+1,
+        "hp": float(100),
         "pos": {
             "x": 400,
             "y": 400,
@@ -31,18 +34,20 @@ def addPlayer():
         "r": 0,
         "col": randCol(),
         "upd": time.time(),
+        "dt": 0,
         "on": True
     })
-def setDir(player, r):
+def setDir(player, r, speed = 0.8):
     global players
     for index, p in enumerate(players):
         if int(p["id"]) == int(player):
-            dir = math.atan2(r["y"], r["x"])
-            players[index]["pos"]["xm"] += math.cos(dir) * 1
-            players[index]["pos"]["ym"] += math.sin(dir) * 1
-            players[index]["upd"] = time.time()
-            players[index]["on"] = True
-            return players[index]["pos"]
+            if players[index]["dt"] <= 0:
+                dir = math.atan2(r["y"], r["x"])
+                players[index]["pos"]["xm"] += math.cos(dir) * speed
+                players[index]["pos"]["ym"] += math.sin(dir) * speed
+                players[index]["upd"] = time.time()
+                players[index]["on"] = True
+                return players[index]["pos"]
     return "not found"
 
 async def echo_server(websocket, path):
@@ -64,7 +69,7 @@ async def echo_server(websocket, path):
             ret["val"] = len(players)
         elif k == 'upd':
             if v["dir"] != False:
-                ret["log"] = setDir(v["player"], v["dir"])
+                setDir(v["player"], v["dir"])
             ret["code"] = 200
             ret["val"] = players
         elif k == 'setupcheck':
@@ -89,6 +94,39 @@ async def loop_function():
     global players
     while True:
         for index, player in enumerate(players):
+            if players[index]["dt"] > 0:
+                players[index]["dt"] -= 1
+                players[index]["upd"] = time.time()
+            if players[index]["dt"] <= 0:
+                if players[index]["on"] == "dead":
+                    players[index]["on"] = True
+                    players[index]["dt"] = 0
+                    players[index]["hp"] = 100
+                    players[index]["pos"]["x"] = random.randin(20, 380)
+                    players[index]["pos"]["y"] = random.randin(20, 380)
+                elif players[index]["hp"] <= 0:
+                    players[index]["on"] = "dead"
+                    players[index]["dt"] = 60*10
+        for index, player in enumerate(players):
+            for index2, player2 in enumerate(players):
+                if index != index2:
+                    if players[index]["on"] == True:
+                        if players[index2]["on"] == True:
+                            if dist(players[index]["pos"]["x"], players[index]["pos"]["y"], players[index2]["pos"]["x"], players[index2]["pos"]["y"]) <= 40:
+                                players[index2]["hp"] -= dist(0, 0, players[index]["pos"]["xm"], players[index]["pos"]["ym"])*2
+        for index, player in enumerate(players):
+            for index2, player2 in enumerate(players):
+                if index != index2:
+                    if players[index]["on"] == True:
+                        if players[index2]["on"] == True:
+                            if dist(players[index]["pos"]["x"], players[index]["pos"]["y"], players[index2]["pos"]["x"], players[index2]["pos"]["y"]) <= 40:
+                                r = math.atan2(players[index]["pos"]["y"] - players[index2]["pos"]["y"], players[index]["pos"]["x"] - players[index2]["pos"]["x"])
+                                setDir(players[index]["id"], {
+                                    "x": math.cos(r)*5,
+                                    "y": math.sin(r)*5
+                                }, 20)
+
+        for index, player in enumerate(players):
             if players[index]["pos"]["x"] + players[index]["pos"]["xm"] < 0:
                 players[index]["pos"]["xm"] = -players[index]["pos"]["xm"]
             if players[index]["pos"]["x"] + players[index]["pos"]["xm"] > 800:
@@ -104,7 +142,7 @@ async def loop_function():
             if time.time() - players[index]["upd"] > 5:
                 players[index]["on"] = False
             if time.time() - players[index]["upd"] > 10:
-                players[index]["on"] = "dead"
+                players[index]["on"] = "dc"
             if time.time() - players[index]["upd"] > 60*5:
                 del players[index]
         await asyncio.sleep(1/60) # 30 times per second
