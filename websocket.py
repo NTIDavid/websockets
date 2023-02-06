@@ -102,8 +102,8 @@ async def loop_function():
                     players[index]["on"] = True
                     players[index]["dt"] = 0
                     players[index]["hp"] = 100
-                    players[index]["pos"]["x"] = random.randin(20, 380)
-                    players[index]["pos"]["y"] = random.randin(20, 380)
+                    players[index]["pos"]["x"] = random.randint(20, 380)
+                    players[index]["pos"]["y"] = random.randint(20, 380)
                 elif players[index]["hp"] <= 0:
                     players[index]["on"] = "dead"
                     players[index]["dt"] = 60*10

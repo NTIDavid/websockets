@@ -8,7 +8,7 @@ window.addEventListener("load", function() {
 });
 let fps = 60;
 let ws = {
-	host: "nighthost.ddns.net",
+	host: "ntigkristianstad.se",
 	port: "8765",
 	socket: null,
 	latencyTimer: null,
@@ -146,7 +146,7 @@ let ori = {
 window.addEventListener("deviceorientation", function(event) {
 	//document.querySelector("#log").innerText = JSON.stringify(event);
 	ori.x = event.alpha;
-	ori.x = event.beta;
+	ori.y = event.beta;
 });
 let g = {
 	on: false,
@@ -157,31 +157,32 @@ let g = {
 			x: 0,
 			y: 0
 		};
-		if(document.querySelector("#autopilot").checked == true) {
-			for(let p1 of g.players) {
-				if(p1.id == player) {
-					for(let p of g.players) {
-						if(p.id != p1.id) {
-							if(p.on == true) {
-								if(Math.random() < 0.4) {
-									let r = Math.atan2(p.pos.y - p1.pos.y, p.pos.x - p1.pos.x);
-									console.log(r);
-									console.log(m);
-									m.x = Math.cos(r)*5;
-									m.y = Math.sin(r)*5;
-									break;
+		if(document.querySelector("#autopilot") != undefined) {
+			if(document.querySelector("#autopilot").checked == true) {
+				for(let p1 of g.players) {
+					if(p1.id == player) {
+						for(let p of g.players) {
+							if(p.id != p1.id) {
+								if(p.on == true) {
+									if(Math.random() < 0.4) {
+										let r = Math.atan2(p.pos.y - p1.pos.y, p.pos.x - p1.pos.x);
+										console.log(r);
+										console.log(m);
+										m.x = Math.cos(r)*5;
+										m.y = Math.sin(r)*5;
+										break;
+									}
 								}
 							}
 						}
 					}
 				}
 			}
-			console.log("-");
 		}
-		if (ori.x !== null) {
+		/*if (ori.x !== null) {
 			console.log(ori);
 			return false;
-		} else {
+		} else {*/
 			if(g.keys.indexOf("KeyA") !== -1) {
 				m.x -= 5;
 			}
@@ -197,7 +198,7 @@ let g = {
 			if(m.x === 0 && m.y === 0) {
 				return false;
 			}
-		}
+		//}
 		return m;
 	},
 	setup: function() {

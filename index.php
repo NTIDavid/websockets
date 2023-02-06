@@ -23,8 +23,8 @@ if(isset($_SESSION["user"])) {
 	<link rel="stylesheet" href="css.css">
 </head>
 <body>
-	<!-- <label for="autopilot">Autopilot</label> <input type="checkbox" id="autopilot">
-	<a href="logout.php">Logga ut</a><br>-->
+	<label for="autopilot">Autopilot</label> <input type="checkbox" id="autopilot">
+	<a href="logout.php">Logga ut</a><br>
 	<p id="lat"></p>
 	<p id="error"></p>
 	<canvas></canvas>
