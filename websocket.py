@@ -16,27 +16,35 @@ def dist(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 players = []
-def addPlayer():
+def addPlayer(name):
     global players
     high = 0
+    exists = False
     for index, p in enumerate(players):
         if players[index]["id"] > high:
             high = players[index]["id"]
-    players.append({
-        "id": high+1,
-        "hp": float(100),
-        "pos": {
-            "x": 400,
-            "y": 400,
-            "xm": 0,
-            "ym": 0
-        },
-        "r": 0,
-        "col": randCol(),
-        "upd": time.time(),
-        "dt": 0,
-        "on": True
-    })
+        if players[index]["name"] == name:
+            exists = True
+    if exists == False:
+        players.append({
+            "id": high+1,
+            "name": name,
+            "hp": float(100),
+            "pos": {
+                "x": random.randint(20, 780),
+                "y": random.randint(20, 780),
+                "xm": 0,
+                "ym": 0
+            },
+            "r": 0,
+            "col": randCol(),
+            "upd": time.time(),
+            "dt": 0,
+            "on": True
+        })
+        return high+1
+    else:
+        return False
 def setDir(player, r, speed = 0.8):
     global players
     for index, p in enumerate(players):
@@ -64,9 +72,8 @@ async def echo_server(websocket, path):
             "log": ""
         }
         if k == 'setup':
-            addPlayer()
             ret["code"] = 200
-            ret["val"] = len(players)
+            ret["val"] = addPlayer(v)
         elif k == 'upd':
             if v["dir"] != False:
                 setDir(v["player"], v["dir"])
@@ -143,7 +150,7 @@ async def loop_function():
                 players[index]["on"] = False
             if time.time() - players[index]["upd"] > 10:
                 players[index]["on"] = "dc"
-            if time.time() - players[index]["upd"] > 60*1:
+            if time.time() - players[index]["upd"] > 60*2:
                 del players[index]
         await asyncio.sleep(1/60) # 30 times per second
 
