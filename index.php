@@ -7,7 +7,7 @@ session_start();
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=1, user-scalable=0">
 	<title>Websockets</title>
 	<script>
 var player = <?php
@@ -18,16 +18,15 @@ if(isset($_SESSION["user"])) {
 }
 ?>;
 	</script>
-	<script src="ajax.js"></script>
-	<script src="js.js"></script>
-	<link rel="stylesheet" href="css.css">
+	<script src="ajax.js?r=<?php echo rand(0, 99999999); ?>"></script>
+	<script src="js.js?r=<?php echo rand(0, 99999999); ?>"></script>
+	<link rel="stylesheet" href="css.css?r=<?php echo rand(0, 99999999); ?>">
 </head>
 <body>
-	<label for="autopilot">Autopilot</label> <input type="checkbox" id="autopilot">
-	<a href="logout.php">Logga ut</a><br>
+	<h1>ntikstad.com/tests/ws</h1>
+	<!--<a href="logout.php">Logga ut</a><br>-->
 	<p id="lat"></p>
 	<p id="error"></p>
 	<canvas></canvas>
-	<p id="log"></p>
 </body>
 </html>

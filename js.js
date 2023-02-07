@@ -14,7 +14,7 @@ let ws = {
 	latencyTimer: null,
 	updTimer: null,
 	setup: function() {
-		ws.socket = new WebSocket("ws://"+ws.host+":"+ws.port);
+		ws.socket = new WebSocket("wss://"+ws.host+":"+ws.port);
 		ws.socket.addEventListener("open", ws.loaded);
 		ws.socket.addEventListener("error", ws.error);
 		ws.socket.addEventListener("message", ws.get);
@@ -47,7 +47,7 @@ let ws = {
 					playerCount++;
 				}
 			}
-			document.querySelector("#lat").innerText = "Spelare: "+playerCount+"st U:"+up+"ms D:"+down+"ms T:"+total+"ms";
+			document.querySelector("#lat").innerText = "Spelare: "+playerCount+"st Latens:"+total+"ms";
 		} else if(data.cmd === "setup") {
 			if(g.on === false) {
 				ajax("setup.php?id="+encodeURIComponent(data.val), "GET", function(data) {
@@ -100,9 +100,12 @@ let error = {
 		document.querySelector("#error").classList.remove("on");
 	}
 }
+function dist(x1, y1, x2, y2) {
+	return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+}
 let draw = null;
 let d = {
-	player: function(x, y, col, hp, dt) {
+	player: function(x, y, col, hp, dt, id) {
 		draw.beginPath();
 		draw.moveTo(x, y);
 		draw.fillStyle = col;
@@ -134,8 +137,15 @@ let d = {
 			}
 		}
 		draw.fillStyle = hpcol;
-		draw.arc(x, y, 10, 0, Math.PI*2);
+		draw.arc(x, y, 6, 0, Math.PI*2);
 		draw.fill();
+		draw.closePath();
+		draw.beginPath();
+		draw.font = "10px Verdana";
+		draw.fillStyle = "#000";
+		draw.textAlign = "center";
+		draw.textBaseline = "top";
+		draw.fillText(id, x, y+25);
 		draw.closePath();
 	}
 };
@@ -144,8 +154,7 @@ let ori = {
 	y: 0
 };
 window.addEventListener("deviceorientation", function(event) {
-	//document.querySelector("#log").innerText = JSON.stringify(event);
-	ori.x = event.alpha;
+	ori.x = event.gamma;
 	ori.y = event.beta;
 });
 let g = {
@@ -179,10 +188,15 @@ let g = {
 				}
 			}
 		}
-		/*if (ori.x !== null) {
-			console.log(ori);
-			return false;
-		} else {*/
+		if ((ori.x !== null) && (ori.y !== null)) {
+			if(dist(ori.x, ori.y, 0, 0) > 5) {
+				m.x = ori.x;
+				m.y = ori.y;
+			} else {
+				return false;
+			}
+			//document.querySelector("#log").innerHTML = "x: "+ori.x+"<br>y: "+ori.y;
+		} else {
 			if(g.keys.indexOf("KeyA") !== -1) {
 				m.x -= 5;
 			}
@@ -198,7 +212,7 @@ let g = {
 			if(m.x === 0 && m.y === 0) {
 				return false;
 			}
-		//}
+		}
 		return m;
 	},
 	setup: function() {
@@ -232,19 +246,19 @@ function loop() {
 			g.on = false;
 			//alert("Du blev kickad pga inaktivitet");
 			//window.location.href = "logout.php";
-			ws.send("setup", "sure");
+			//ws.send("setup", "sure");
 		}
 		for(let p of g.players) {
 			if(p.on === true) {
-				d.player(p.pos.x, p.pos.y, p.col, p.hp, p.dt);
+				d.player(p.pos.x, p.pos.y, p.col, p.hp, p.dt, p.id);
 			} else if(p.on === false) {
-				d.player(p.pos.x, p.pos.y, "rgba(0,0,0,0.2)", p.hp, p.dt);
+				d.player(p.pos.x, p.pos.y, "rgba(0,0,0,0.2)", p.hp, p.dt, p.id);
 			} else if(p.on === "dead") {
-				d.player(p.pos.x, p.pos.y, "rgba(150,150,150,1)", p.hp, p.dt);
+				d.player(p.pos.x, p.pos.y, "rgba(150,150,150,1)", p.hp, p.dt, p.id);
 			} else if(p.on === "dc") {
-				d.player(p.pos.x, p.pos.y, "rgba(255,0,0,0.2)", p.hp, p.dt);
+				d.player(p.pos.x, p.pos.y, "rgba(255,0,0,0.2)", p.hp, p.dt, p.id);
 			} else {
-				d.player(p.pos.x, p.pos.y, "rgba(0,0,0,0.2)", p.hp, p.dt);
+				d.player(p.pos.x, p.pos.y, "rgba(0,0,0,0.2)", p.hp, p.dt, p.id);
 			}
 		}
 	}
