@@ -4,7 +4,7 @@ import json
 import time
 import random
 import math
-
+import ssl
 
 def randCol():
     red = random.randint(0, 180)
@@ -143,7 +143,7 @@ async def loop_function():
                 players[index]["on"] = False
             if time.time() - players[index]["upd"] > 10:
                 players[index]["on"] = "dc"
-            if time.time() - players[index]["upd"] > 60*5:
+            if time.time() - players[index]["upd"] > 60*1:
                 del players[index]
         await asyncio.sleep(1/60) # 30 times per second
 
@@ -154,7 +154,9 @@ async def loop_function():
 #loop_function()
 
 async def main():
-    start_server = websockets.serve(echo_server, '0.0.0.0', 8765)
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain('crt.pem', 'key.pem')
+    start_server = websockets.serve(echo_server, '0.0.0.0', 8765, ssl=ssl_context)
     #asyncio.ensure_future(start_server)
     #asyncio.ensure_future(loop_function())
     await asyncio.gather(start_server, loop_function())
